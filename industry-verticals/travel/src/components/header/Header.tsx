@@ -1,13 +1,16 @@
 'use client';
 
-import React, { JSX, useState, useEffect } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { ComponentProps } from '@/lib/component-props';
 import { Placeholder } from '@sitecore-content-sdk/nextjs';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose } from '@/shadcn/components/ui/drawer';
 import { Menu, Search, X } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import PreviewSearch from '../non-sitecore/search/PreviewSearch';
 import { PREVIEW_WIDGET_ID } from '@/constants/search';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { trackAuthEvent } from '@/lib/auth-events';
 
 export type HeaderProps = ComponentProps & {
   params: { [key: string]: string };
@@ -16,13 +19,26 @@ export type HeaderProps = ComponentProps & {
 export const Default = (props: HeaderProps): JSX.Element => {
   const { styles, RenderingIdentifier: id, DynamicPlaceholderId } = props.params;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const hasTrackedSessionRef = useRef(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { user, isLoading } = useUser();
+  const userLabel = user?.name || user?.email || 'My account';
 
   // Close search when route changes
   useEffect(() => {
     setIsSearchOpen(false);
   }, [pathname, searchParams]);
+
+  useEffect(() => {
+    if (!isLoading && user?.sub && !hasTrackedSessionRef.current) {
+      trackAuthEvent({
+        type: 'session_detected',
+        userId: user.sub,
+      });
+      hasTrackedSessionRef.current = true;
+    }
+  }, [isLoading, user]);
 
   return (
     <div className={`component header bg-background border-b ${styles}`} id={id}>
@@ -42,9 +58,26 @@ export const Default = (props: HeaderProps): JSX.Element => {
           <Search className="size-5" />
         </button>
 
-        <div className="header-block hidden! lg:flex! lg:shrink-0">
+        {/* <div className="header-block hidden! lg:flex! lg:shrink-0">
           <Placeholder name={`header-right-${DynamicPlaceholderId}`} rendering={props.rendering} />
-        </div>
+        </div> */}
+
+        {!isLoading && (
+          <div className="hidden lg:flex lg:items-center lg:gap-3">
+            {user ? (
+              <>
+                <span className="text-sm">{userLabel}</span>
+                <Link href="/auth/logout" className="text-sm font-medium hover:underline">
+                  Logout
+                </Link>
+              </>
+            ) : (
+              <Link href="/auth/login" className="text-sm font-medium hover:underline">
+                Login
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Mobile Drawer Trigger */}
         <div className="lg:hidden">
@@ -80,6 +113,22 @@ export const Default = (props: HeaderProps): JSX.Element => {
                     name={`header-right-${DynamicPlaceholderId}`}
                     rendering={props.rendering}
                   />
+                  {!isLoading && (
+                    <div className="flex flex-col gap-y-3">
+                      {user ? (
+                        <>
+                          <span className="text-sm">{userLabel}</span>
+                          <Link href="/auth/logout" className="text-sm font-medium hover:underline">
+                            Logout
+                          </Link>
+                        </>
+                      ) : (
+                        <Link href="/auth/login" className="text-sm font-medium hover:underline">
+                          Login
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </DrawerContent>

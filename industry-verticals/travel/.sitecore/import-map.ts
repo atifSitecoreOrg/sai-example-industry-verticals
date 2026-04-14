@@ -54,6 +54,8 @@ import { isParamEnabled } from '@/helpers/isParamEnabled';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose } from '@/shadcn/components/ui/drawer';
 import { DatePicker } from '@/shadcn/components/ui/date-picker';
 import PreviewSearch_938f3b0320996fc3fe6ab3d953daf2e708e085ca from 'src/components/non-sitecore/search/PreviewSearch';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { trackAuthEvent } from '@/lib/auth-events';
 import DestinationCard from 'src/components/non-sitecore/DestinationCard';
 import FilterDropdown from 'src/components/non-sitecore/search/FilterDropdown';
 import SocialShare from 'src/components/non-sitecore/SocialShare';
@@ -439,6 +441,18 @@ const importMap = [
     module: 'src/components/non-sitecore/search/PreviewSearch',
     exports: [
       { name: 'default', value: PreviewSearch_938f3b0320996fc3fe6ab3d953daf2e708e085ca },
+    ]
+  },
+  {
+    module: '@auth0/nextjs-auth0/client',
+    exports: [
+      { name: 'useUser', value: useUser },
+    ]
+  },
+  {
+    module: '@/lib/auth-events',
+    exports: [
+      { name: 'trackAuthEvent', value: trackAuthEvent },
     ]
   },
   {
