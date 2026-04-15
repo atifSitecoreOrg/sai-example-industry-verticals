@@ -85,7 +85,11 @@ export const Default = (props: HeaderProps): JSX.Element => {
             {user ? (
               <>
                 <span className="text-sm">{userLabel}</span>
-                <Link href="/auth/logout" onClick={handleLogout} className="text-sm font-medium hover:underline">
+                <Link
+                  href="/auth/logout"
+                  onClick={handleLogout}
+                  className="text-sm font-medium hover:underline"
+                >
                   Logout
                 </Link>
               </>
@@ -136,7 +140,11 @@ export const Default = (props: HeaderProps): JSX.Element => {
                       {user ? (
                         <>
                           <span className="text-sm">{userLabel}</span>
-                          <Link href="/auth/logout" onClick={handleLogout} className="text-sm font-medium hover:underline">
+                          <Link
+                            href="/auth/logout"
+                            onClick={handleLogout}
+                            className="text-sm font-medium hover:underline"
+                          >
                             Logout
                           </Link>
                         </>
