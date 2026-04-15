@@ -11,6 +11,7 @@ import PreviewSearch from '../non-sitecore/search/PreviewSearch';
 import { PREVIEW_WIDGET_ID } from '@/constants/search';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { trackAuthEvent } from '@/lib/auth-events';
+import { event as cdpEvent, identity as cdpIdentity } from '@sitecore-cloudsdk/events/browser';
 
 export type HeaderProps = ComponentProps & {
   params: { [key: string]: string };
@@ -32,13 +33,30 @@ export const Default = (props: HeaderProps): JSX.Element => {
 
   useEffect(() => {
     if (!isLoading && user?.sub && !hasTrackedSessionRef.current) {
-      trackAuthEvent({
-        type: 'session_detected',
-        userId: user.sub,
-      });
       hasTrackedSessionRef.current = true;
+
+      trackAuthEvent({ type: 'session_detected', userId: user.sub });
+
+      // CDP: identify user by email (links anonymous guest to known profile)
+      if (user.email) {
+        const email = (user.email as string).toLowerCase().trim();
+        cdpIdentity({
+          channel: 'WEB',
+          currency: 'USD',
+          email,
+          identifiers: [{ provider: 'email', id: email }],
+        }).catch((e) => console.debug(e));
+      }
+
+      // CDP: custom LOGIN event
+      cdpEvent({ type: 'LOGIN', channel: 'WEB' }).catch((e) => console.debug(e));
     }
   }, [isLoading, user]);
+
+  const handleLogout = () => {
+    trackAuthEvent({ type: 'logout_initiated', userId: user?.sub });
+    cdpEvent({ type: 'LOGOUT', channel: 'WEB' }).catch((e) => console.debug(e));
+  };
 
   return (
     <div className={`component header bg-background border-b ${styles}`} id={id}>
@@ -67,7 +85,7 @@ export const Default = (props: HeaderProps): JSX.Element => {
             {user ? (
               <>
                 <span className="text-sm">{userLabel}</span>
-                <Link href="/auth/logout" className="text-sm font-medium hover:underline">
+                <Link href="/auth/logout" onClick={handleLogout} className="text-sm font-medium hover:underline">
                   Logout
                 </Link>
               </>
@@ -118,7 +136,7 @@ export const Default = (props: HeaderProps): JSX.Element => {
                       {user ? (
                         <>
                           <span className="text-sm">{userLabel}</span>
-                          <Link href="/auth/logout" className="text-sm font-medium hover:underline">
+                          <Link href="/auth/logout" onClick={handleLogout} className="text-sm font-medium hover:underline">
                             Logout
                           </Link>
                         </>
