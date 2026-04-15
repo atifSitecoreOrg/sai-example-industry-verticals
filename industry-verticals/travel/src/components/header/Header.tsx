@@ -1,6 +1,6 @@
 'use client';
 
-import React, { JSX, useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useState } from 'react';
 import { ComponentProps } from '@/lib/component-props';
 import { Placeholder } from '@sitecore-content-sdk/nextjs';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerClose } from '@/shadcn/components/ui/drawer';
@@ -20,7 +20,6 @@ export type HeaderProps = ComponentProps & {
 export const Default = (props: HeaderProps): JSX.Element => {
   const { styles, RenderingIdentifier: id, DynamicPlaceholderId } = props.params;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const hasTrackedSessionRef = useRef(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isLoading } = useUser();
@@ -32,8 +31,9 @@ export const Default = (props: HeaderProps): JSX.Element => {
   }, [pathname, searchParams]);
 
   useEffect(() => {
-    if (!isLoading && user?.sub && !hasTrackedSessionRef.current) {
-      hasTrackedSessionRef.current = true;
+    const cdpTrackedKey = 'cdp_login_tracked';
+    if (!isLoading && user?.sub && !sessionStorage.getItem(cdpTrackedKey)) {
+      sessionStorage.setItem(cdpTrackedKey, '1');
 
       trackAuthEvent({ type: 'session_detected', userId: user.sub });
 
@@ -54,6 +54,7 @@ export const Default = (props: HeaderProps): JSX.Element => {
   }, [isLoading, user]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('cdp_login_tracked');
     trackAuthEvent({ type: 'logout_initiated', userId: user?.sub });
     cdpEvent({ type: 'LOGOUT', channel: 'WEB' }).catch((e) => console.debug(e));
   };
