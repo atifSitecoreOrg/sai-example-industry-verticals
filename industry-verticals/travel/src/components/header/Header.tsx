@@ -50,6 +50,50 @@ export const Default = (props: HeaderProps): JSX.Element => {
 
       // CDP: custom LOGIN event
       cdpEvent({ type: 'LOGIN', channel: 'WEB' }).catch((e) => console.debug(e));
+
+      // Salesforce Data Cloud: identity + login events
+      // The SDK loads via next/script (afterInteractive) which may not be ready
+      // when this useEffect fires after an Auth0 redirect. Wait up to 5s for it.
+      const sendSfdcEvents = () => {
+        if (user.email) {
+          const sfEmail = (user.email as string).toLowerCase().trim();
+          window
+            .SalesforceInteractions!.sendEvent({
+              interaction: { name: 'Identity' },
+              user: {
+                identities: { email: sfEmail },
+                attributes: {
+                  firstName: (user.given_name as string) || '',
+                  lastName: (user.family_name as string) || '',
+                },
+              },
+            })
+            .catch((e) => console.debug('[SalesforceDataCloud] Identity event failed:', e));
+        }
+
+        window
+          .SalesforceInteractions!.sendEvent({
+            interaction: { name: 'Login' },
+          })
+          .catch((e) => console.debug('[SalesforceDataCloud] Login event failed:', e));
+      };
+
+      const isSfdcReady = () => !!(window.SalesforceInteractions && window.__sfdc_dc_initialized);
+
+      if (isSfdcReady()) {
+        sendSfdcEvents();
+      } else {
+        let attempts = 0;
+        const waitForSdk = setInterval(() => {
+          attempts++;
+          if (isSfdcReady()) {
+            clearInterval(waitForSdk);
+            sendSfdcEvents();
+          } else if (attempts >= 20) {
+            clearInterval(waitForSdk);
+          }
+        }, 250);
+      }
     }
   }, [isLoading, user]);
 
@@ -57,6 +101,13 @@ export const Default = (props: HeaderProps): JSX.Element => {
     sessionStorage.removeItem('cdp_login_tracked');
     trackAuthEvent({ type: 'logout_initiated', userId: user?.sub });
     cdpEvent({ type: 'LOGOUT', channel: 'WEB' }).catch((e) => console.debug(e));
+
+    // Salesforce Data Cloud: logout event
+    if (window.SalesforceInteractions) {
+      window.SalesforceInteractions.sendEvent({
+        interaction: { name: 'Logout' },
+      }).catch((e) => console.debug('[SalesforceDataCloud] Logout event failed:', e));
+    }
   };
 
   return (
