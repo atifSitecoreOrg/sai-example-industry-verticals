@@ -12,6 +12,7 @@ import * as SelectedDestinations from 'src/components/selected-destinations/Sele
 import * as SelectedArticles from 'src/components/selected-articles/SelectedArticles';
 import * as SectionWrapper from 'src/components/section-wrapper/SectionWrapper';
 import * as SearchResults from 'src/components/search-results/SearchResults';
+import * as SalesforceDataCloudScript from 'src/components/salesforce-dc/SalesforceDataCloudScript';
 import * as RowSplitter from 'src/components/row-splitter/RowSplitter';
 import * as RichText from 'src/components/rich-text/RichText';
 import * as Promo from 'src/components/promo/Promo';
@@ -63,6 +64,7 @@ export const componentMap = new Map<string, NextjsContentSdkComponent>([
   ['SelectedArticles', { ...SelectedArticles }],
   ['SectionWrapper', { ...SectionWrapper }],
   ['SearchResults', { ...SearchResults }],
+  ['SalesforceDataCloudScript', { ...SalesforceDataCloudScript }],
   ['RowSplitter', { ...RowSplitter }],
   ['RichText', { ...RichText }],
   ['Promo', { ...Promo }],
