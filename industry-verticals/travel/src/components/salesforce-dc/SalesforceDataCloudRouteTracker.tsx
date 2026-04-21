@@ -20,9 +20,18 @@ const SalesforceDataCloudRouteTracker = (): JSX.Element => {
     if (process.env.NODE_ENV === 'development') return;
     if (!window.SalesforceInteractions || !window.__sfdc_dc_initialized) return;
 
-    window.SalesforceInteractions.reinit()
-      .then(() => console.debug('[SalesforceDataCloud] reinit after route change:', pathname))
-      .catch((e) => console.debug('[SalesforceDataCloud] reinit failed:', e));
+    try {
+      const result = window.SalesforceInteractions.reinit();
+      if (result && typeof result.then === 'function') {
+        result
+          .then(() => console.debug('[SalesforceDataCloud] reinit after route change:', pathname))
+          .catch((e: unknown) => console.debug('[SalesforceDataCloud] reinit failed:', e));
+      } else {
+        console.debug('[SalesforceDataCloud] reinit after route change:', pathname);
+      }
+    } catch (e) {
+      console.debug('[SalesforceDataCloud] reinit failed:', e);
+    }
   }, [pathname]);
 
   return <></>;
