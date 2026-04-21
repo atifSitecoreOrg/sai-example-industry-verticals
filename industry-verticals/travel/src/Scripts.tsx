@@ -4,6 +4,7 @@ import BYOC from 'src/byoc';
 import FEAASScripts from 'components/content-sdk/FEAASScripts';
 import CdpPageView from 'components/content-sdk/CdpPageView';
 import SalesforceDataCloudScript from 'components/salesforce-dc/SalesforceDataCloudScript';
+import SalesforceDataCloudRouteTracker from 'components/salesforce-dc/SalesforceDataCloudRouteTracker';
 import { JSX } from 'react';
 
 const Scripts = (): JSX.Element => {
@@ -13,6 +14,7 @@ const Scripts = (): JSX.Element => {
       <FEAASScripts />
       <CdpPageView />
       <SalesforceDataCloudScript />
+      <SalesforceDataCloudRouteTracker />
       <EditingScripts />
     </>
   );

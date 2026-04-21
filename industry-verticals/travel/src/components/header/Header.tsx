@@ -57,25 +57,36 @@ export const Default = (props: HeaderProps): JSX.Element => {
       const sendSfdcEvents = () => {
         if (user.email) {
           const sfEmail = (user.email as string).toLowerCase().trim();
+          // Contact-point email (profile event)
           window
             .SalesforceInteractions!.sendEvent({
-              interaction: { name: 'Identity' },
+              interaction: { name: 'Login' },
               user: {
-                identities: { email: sfEmail },
                 attributes: {
-                  firstName: (user.given_name as string) || '',
-                  lastName: (user.family_name as string) || '',
+                  email: sfEmail,
+                  eventType: 'contactPointEmail',
                 },
               },
             })
-            .catch((e) => console.debug('[SalesforceDataCloud] Identity event failed:', e));
+            .catch((e) =>
+              console.debug('[SalesforceDataCloud] contactPointEmail event failed:', e)
+            );
         }
 
+        // Identity profile event
         window
           .SalesforceInteractions!.sendEvent({
             interaction: { name: 'Login' },
+            user: {
+              attributes: {
+                firstName: (user.given_name as string) || '',
+                lastName: (user.family_name as string) || '',
+                eventType: 'identity',
+                isAnonymous: 0,
+              },
+            },
           })
-          .catch((e) => console.debug('[SalesforceDataCloud] Login event failed:', e));
+          .catch((e) => console.debug('[SalesforceDataCloud] identity event failed:', e));
       };
 
       const isSfdcReady = () => !!(window.SalesforceInteractions && window.__sfdc_dc_initialized);
